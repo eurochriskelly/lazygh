@@ -7,7 +7,7 @@ function list_issues {
 }
 
 function handle_selection {
-    read -n1 -p "Select an issue to [(C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo]: " action
+  read -n1 -p "Select an issue to [(C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo / (Q)uit]: " action
     case $action in
         C|c)
             gh issue create
@@ -24,6 +24,9 @@ function handle_selection {
         I|i)
             gh issue view "$issue_number" | less -R
             ;;
+        q|Q|x|X)
+            exit 0
+            ;;
         *)
             echo "Invalid selection"
             ;;
@@ -32,10 +35,7 @@ function handle_selection {
 
 while true; do
     list_issues
-
     read -p "Enter the issue number: " issue_number
-
     handle_selection
-
     sleep 2
 done
