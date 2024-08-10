@@ -3,68 +3,69 @@
 issue_number=""
 
 function list_issues {
-    clear
-    local issue_number=$1
-    # echo in yellow "List of issues:"
-    echo -e "\033[33mList of issues:\033[0m"
-    gh issue list --limit 100 --json number,title,createdAt | jq -r '.[] | "#\(.number) \(.title) \(.createdAt)"' | while read -r line; do
-      number_part=$(echo "$line" | grep -o '^#[0-9]\+')
-      text_part=$(echo "$line" | sed -E "s/^#[0-9]+ //")
-      # Format number to be #001
-      formatted_number=$(printf "#%03d" $(echo "$number_part" | tr -d '#'))
+	clear
+	local issue_number=$1
+	# echo in yellow "List of issues:"
+	echo -e "\033[33mList of issues:\033[0m"
+	gh issue list --limit 100 --json number,title,createdAt | jq -r '.[] | "#\(.number) \(.title) \(.createdAt)"' | while read -r line; do
+		number_part=$(echo "$line" | grep -o '^#[0-9]\+')
+		text_part=$(echo "$line" | sed -E "s/^#[0-9]+ //")
+		# Format number to be #001
+		formatted_number=$(printf "#%03d" $(echo "$number_part" | tr -d '#'))
 
-      # Determine the color based on issue_number
-      if [ "$number_part" == "#$issue_number" ]; then
-        color_code="\033[35m"  # Magenta
-      else
-        color_code="\033[36m"  # Grey
-      fi
+		# Determine the color based on issue_number
+		if [ "$number_part" == "#$issue_number" ]; then
+			color_code="\033[35m" # Magenta
+		else
+			color_code="\033[36m" # Grey
+		fi
 
-      # Print with the selected color
-      echo -e "  ${color_code}${formatted_number}\033[0m $text_part"
-    done
+		# Print with the selected color
+		echo -e "  ${color_code}${formatted_number}\033[0m $text_part"
+	done
+	echo -e "\n"
 }
 
 function handle_selection {
 
-  echo -en "\033[34mSelect an issue to [(S)elect / (C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo / (Q)uit]: \033[0m"
-  read -n1 action
-    case $action in
-        S|s)
-            echo ""
-            echo -en "\033[34mIssue #: \033[0m"
-            read issue_number
-            ;;
-        C|c)
-            gh issue create
-            ;;
-        L|l)
-            gh issue close "$issue_number"
-            ;;
-        O|o)
-            gh issue comment "$issue_number"
-            ;;
-        E|e)
-            gh issue edit "$issue_number"
-            ;;
-        I|i)
-            gh issue view "$issue_number" | less -R
-            ;;
-        q|Q|x|X)
-            exit 0
-            ;;
-        *)
-            echo "Invalid selection"
-            ;;
-    esac
+	echo -en "\033[34mSelect an issue to [(S)elect / (C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo / (Q)uit]: \033[0m"
+	read -n1 action
+  echo ""
+	case $action in
+	S | s)
+		echo -en "\033[34mIssue #: \033[0m"
+		read issue_number
+		;;
+	C | c)
+		gh issue create
+		;;
+	L | l)
+		gh issue close "$issue_number"
+		;;
+	O | o)
+		gh issue comment "$issue_number"
+		;;
+	E | e)
+		gh issue edit "$issue_number"
+		;;
+	I | i)
+		gh issue view "$issue_number" | less -R
+		;;
+	q | Q | x | X)
+		exit 0
+		;;
+	*)
+		echo "Invalid selection"
+		;;
+	esac
 }
 
 list_issues $issue_number
 echo -en "\033[34mIssue #: \033[0m"
 read issue_number
 while true; do
-    list_issues
-    read -p "Enter the issue number: " issue_number
-    handle_selection
-    sleep 2
+	list_issues $issue_number
+	handle_selection
+
+	sleep 2
 done
