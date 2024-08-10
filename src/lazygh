@@ -7,30 +7,33 @@ function list_issues {
 	local issue_number=$1
 	# echo in yellow "List of issues:"
 	echo -e "\033[33mList of issues:\033[0m"
-	gh issue list --limit 100 --json number,title,createdAt | jq -r '.[] | "#\(.number) \(.title) \(.createdAt)"' | while read -r line; do
-		number_part=$(echo "$line" | grep -o '^#[0-9]\+')
-		text_part=$(echo "$line" | sed -E "s/^#[0-9]+ //")
-		# Format number to be #001
-		formatted_number=$(printf "#%03d" $(echo "$number_part" | tr -d '#'))
+	gh issue list --limit 100 --json number,title |
+		jq -r '.[] | "#\(.number) \(.title)"' |
+		while read -r line; do
+			number_part=$(echo "$line" |
+				grep -o '^#[0-9]\+')
+			text_part=$(echo "$line" |
+				sed -E "s/^#[0-9]+ //")
+			# Format number to be #001
+			formatted_number=$(printf "#%03d" $(echo "$number_part" | tr -d '#'))
 
-		# Determine the color based on issue_number
-		if [ "$number_part" == "#$issue_number" ]; then
-			color_code="\033[35m" # Magenta
-		else
-			color_code="\033[36m" # Grey
-		fi
+			# Determine the color based on issue_number
+			if [ "$number_part" == "#$issue_number" ]; then
+				color_code="\033[35m" # Magenta
+			else
+				color_code="\033[36m" # Grey
+			fi
 
-		# Print with the selected color
-		echo -e "  ${color_code}${formatted_number}\033[0m $text_part"
-	done
+			# Print with the selected color
+			echo -e "  ${color_code}${formatted_number}\033[0m $text_part"
+		done
 	echo -e "\n"
 }
 
 function handle_selection {
-
 	echo -en "\033[34mSelect an issue to [(S)elect / (C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo / (Q)uit]: \033[0m"
 	read -n1 action
-  echo ""
+	echo ""
 	case $action in
 	S | s)
 		echo -en "\033[34mIssue #: \033[0m"
@@ -60,12 +63,26 @@ function handle_selection {
 	esac
 }
 
-list_issues $issue_number
-echo -en "\033[34mIssue #: \033[0m"
-read issue_number
+detect_issue_number() {
+	# Get the current branch name
+	local branch_name=$(git rev-parse --abbrev-ref HEAD)
+
+	# Check if the branch is 'main'
+	if [ "$branch_name" == "main" ]; then
+		issue_number=""
+	else
+		# Extract the issue number from the branch name
+		issue_number=$(echo "$branch_name" | grep -oE '^[0-9]+')
+	fi
+
+	# Output the result
+	echo "Issue number: $issue_number"
+}
+
+detect_issue_number
+
 while true; do
 	list_issues $issue_number
 	handle_selection
-
 	sleep 2
 done
