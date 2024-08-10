@@ -1,9 +1,10 @@
 #!/bin/bash
 
+issue_number=""
+
 function list_issues {
     clear
-    echo "List of issues:"
-    gh issue list --limit 100 --json number,title,createdAt | jq -r '.[] | "#\(.number) \(.title) \(.createdAt)"'
+    local issue_number=$1
     # echo in yellow "List of issues:"
     echo -e "\033[33mList of issues:\033[0m"
     gh issue list --limit 100 --json number,title,createdAt | jq -r '.[] | "#\(.number) \(.title) \(.createdAt)"' | while read -r line; do
@@ -29,6 +30,11 @@ function handle_selection {
   echo -en "\033[34mSelect an issue to [(S)elect / (C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo / (Q)uit]: \033[0m"
   read -n1 action
     case $action in
+        S|s)
+            echo ""
+            echo -en "\033[34mIssue #: \033[0m"
+            read issue_number
+            ;;
         C|c)
             gh issue create
             ;;
@@ -53,6 +59,9 @@ function handle_selection {
     esac
 }
 
+list_issues $issue_number
+echo -en "\033[34mIssue #: \033[0m"
+read issue_number
 while true; do
     list_issues
     read -p "Enter the issue number: " issue_number
