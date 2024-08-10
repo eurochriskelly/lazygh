@@ -1,0 +1,12 @@
+{
+  "name": "lazygh",
+  "version": "1.0.0",
+  "description": "LazyGH is a command-line tool designed to simplify interactions with GitHub issues using the GitHub CLI (`gh`). It provides an intuitive and easy-to-use interface for common tasks without the need to remember complex commands.",
+  "main": "index.js",
+  "scripts": {
+    "preview": "bash src/lazygh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
