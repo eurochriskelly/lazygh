@@ -6,7 +6,9 @@ function list_issues {
 	clear
 	local issue_number=$1
 	# echo in yellow "List of issues:"
-	echo -e "\033[33mList of issues:\033[0m"
+  echo -e "\033[35mLAZYGH: branch/$(git rev-parse --abbrev-ref HEAD)\033[0m"
+  echo -e "  \033[33mList of github issues:\033[0m"
+  echo ""
 	gh issue list --limit 100 --json number,title |
 		jq -r '.[] | "#\(.number) \(.title)"' |
 		while read -r line; do
@@ -31,7 +33,7 @@ function list_issues {
 }
 
 function handle_selection {
-	echo -en "\033[34mSelect an issue to [(S)elect / (C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo / (Q)uit]: \033[0m"
+  echo -en "\033[34mSelect an issue to [(S)elect / chec(K)out / (C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo / (Q)uit]: \033[0m"
 	read -n1 action
 	echo ""
 	case $action in
@@ -44,6 +46,22 @@ function handle_selection {
 		;;
 	L | l)
 		gh issue close "$issue_number"
+		;;
+	K | k)
+    if [ -z "$issue_number" ]; then
+      echo -en "\033[31mIssue number is not set\033[0m"
+    else
+      newbranch="${issue_number}-$(gh issue view "$issue_number" --json title -q '.title' | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
+      git fetch --all
+      rbranch=$(git branch -a|grep "remotes/origin/${issue_number}-"|awk -F"remotes/origin/" '{print $2 }')
+      if [ -n "$rbranch" ]; then
+        echo "Checking out existing remote branch [$rbanch]"
+        git checkout $rbranch
+      else
+        echo "Creating new branch [$newbanch]"
+        git checkout -b $newbranch
+      fi
+    fi
 		;;
 	O | o)
 		gh issue comment "$issue_number"
