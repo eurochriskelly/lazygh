@@ -33,7 +33,7 @@ function list_issues {
 }
 
 function handle_selection {
-  echo -en "\033[34mSelect an issue to [(S)elect / chec(K)out / (C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo / (Q)uit]: \033[0m"
+  echo -en "\033[34mSelect an issue to [(S)elect / chec(K)out / (C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo / (D)ownload / (Q)uit]: \033[0m"
 	read -n1 action
 	echo ""
 	case $action in
@@ -43,6 +43,23 @@ function handle_selection {
 		;;
 	C | c)
 		gh issue create
+		;;
+	D | d)
+    echo "Downloading issues..."
+    topgit=$(git rev-parse --show-toplevel)
+    if [ -d "$topgit/.gh/issues" ]; then
+      echo "Removing existing issues..."
+      rm -rf "$topgit/.gh/issues"
+    fi
+    gh issue list --limit 100 --json number,title |
+      jq -r '.[] | "\(.number)"' |
+      while read -r issue;do
+        mkdir -p "$topgit/.gh/issues"
+        filename="${issue}-$(gh issue view "$issue" --json title -q '.title' | tr '[:upper:]' '[:lower:]' | tr ' ' '-')".md
+        echo "Downloading issue $issue to $filename"
+        gh issue view "$issue" --json body -q '.body' > "$topgit/.gh/issues/$filename"
+      done
+      ls -l "$topgit/.gh/issues"
 		;;
 	L | l)
 		gh issue close "$issue_number"
