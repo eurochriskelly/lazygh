@@ -1,6 +1,7 @@
 #!/bin/bash
 
 issue_number=""
+export REPO_DIR="@@REPO_DIR@@"
 
 function list_issues {
 	clear
@@ -33,7 +34,7 @@ function list_issues {
 }
 
 function handle_selection {
-  echo -en "\033[34mSelect an issue to [(S)elect / chec(K)out / (C)reate / c(L)ose / c(O)mment / (E)dit / (I)nfo / (D)ownload / (Q)uit]: \033[0m"
+  node $REPO_DIR/src/menu.js Select checKout Create cLose cOmment Edit Info Filter Download
 	read -n1 action
 	echo ""
 	case $action in
