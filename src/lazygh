@@ -2,6 +2,7 @@
 
 issue_number=""
 export REPO_DIR="@@REPO_DIR@@"
+filter=
 
 function list_issues {
 	clear
@@ -10,7 +11,8 @@ function list_issues {
   echo -e "\033[35mLAZYGH: branch/$(git rev-parse --abbrev-ref HEAD)\033[0m"
   echo -e "  \033[33mList of github issues:\033[0m"
   echo ""
-	gh issue list --limit 100 --json number,title |
+
+  gh issue list --limit 100 --json number,title $( [ -n "$filter" ] && echo "--label $filter" ) |
 		jq -r '.[] | "#\(.number) \(.title)"' |
 		while read -r line; do
 			number_part=$(echo "$line" |
@@ -44,6 +46,9 @@ function handle_selection {
 		;;
 	C | c)
 		gh issue create
+		;;
+	F | f)
+    filter="s:next"
 		;;
 	D | d)
     echo "Downloading issues..."
